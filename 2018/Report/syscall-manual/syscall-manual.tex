@@ -28,25 +28,25 @@
 %% 表題
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{center}
-{\LARGE システムコール実装の手順書}
+{\LARGE システムコール追加の手順書}
 \end{center}
 
 \begin{flushright}
-  2018/4/10\\
+  2018/4/12\\
  藤原 裕貴
 \end{flushright}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 概要
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{はじめに}\label{sec:introduction}
-本手順書では，カーネルのメッセージバッファに任意の文字列を出力するシステムコールの実装手順を説明する．本手順書は，コンソールの基本的な操作を習得している者を読者として想定している．システムコールを実装するためのカーネルの取得から説明を行う．
+本手順書では，カーネルのメッセージバッファに任意の文字列を出力するシステムコールの追加手順を説明する．本手順書は，コンソールの基本的な操作を習得している者を読者として想定している．システムコールを追加するためのカーネルの取得から説明を行う．
 以下に，本手順書の章立てを示す．
 
 \begin{description}
 \item [第\ref{sec:introduction}章] はじめに
 \item [第\ref{sec:env}章] 実装環境
 \item [第\ref{sec:kernel}章] \verb|Linux|カーネルの取得
-\item [第\ref{sec:procedure}章] システムコールの実装
+\item [第\ref{sec:procedure}章] システムコールの追加
 \item [第\ref{sec:test}章] テスト
 \item [第\ref{sec:conclusion}章] おわりに
 
@@ -60,7 +60,7 @@
 \begin{table}[h]
   \begin{center}
     \caption{実装環境}\label{tab:env}
-    \begin{tabular}{r|r}
+    \begin{tabular}{l|l}
       \hline\hline
       \multicolumn{1}{l|}{項目名} & \multicolumn{1}{l}{環境} \\
       \hline
@@ -85,8 +85,8 @@ $ su
 なお，\verb|fujiwara-yu|はユーザ名であり，自身のユーザ名に変更して使用する．
 
 \subsection{パッケージのインストール}
-以下に実装時に必要となるパッケージのインストール方法を\verb|git| を例に示す．
-\verb|git| はパッケージ名である．別のパッケージも同じ手順でインストールが可能である．
+本手順において必要となるパッケージのインストール方法を示す．
+\verb|git| はパッケージ名である．以下のコマンドを実行することで，パッケージのインストールが行える．
 \begin{verbatim}
 $ sudo apt-get install git
 \end{verbatim}
@@ -101,7 +101,7 @@ $ sudo apt-get install git
 
 \section{Linux カーネルの取得}\label{sec:kernel}
 \subsection{Linux のソースコードの取得}
-\verb|Linux|のソースコードを\verb|Git|から取得する．下記の\verb|Git|リポジトリをクローンし，\verb|Linux|のソースコードを取得する．リポジトリとは，ファイルやディレクトリを保存する場所のことである．
+\verb|Linux|のソースコードは\verb|Git|で管理されている．\verb|Git| とは，オープンソースのバージョン管理システムである．下記の\verb|Git|リポジトリをクローンし，\verb|Linux|のソースコードを取得する．リポジトリとは，ファイルやディレクトリを保存する場所のことである．
 \begin{verbatim}
 git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
 \end{verbatim}
@@ -115,26 +115,26 @@ $ git clone \
 まず，\verb|mkdir|コマンドにより\verb|/home/fujiwara-yu|以下にディレクトリが作成される．その後\verb|cd|コマンドにより，\verb|git|ディレクトリに移動する．そのディレクトリで，\verb|git clone|コマンドでリポジトリの複製を行うことで\verb|/home/fujiwara-yu/git|以下に\verb|linux-stable|ディレクトリが作成される．\verb|linux-stable|以下に\verb|Linux|のソースコードが格納されている．
 
 \subsection{ブランチの切り替え}
-\verb|Linux|のソースコードのバージョンを切り替えるため，ブランチの作成と切り替えを行う．ブランチとは開発の履歴を管理するための分岐である．\verb|/home/fujiwara-yu/git/linux-stable|で以下のコマンドを実行する．
+\verb|Linux|のソースコードのバージョンを切り替えるため，ブランチの作成と切り替えを行う．ブランチとは，ソースコードの編集履歴を管理するための分岐である．ブランチごとに別の編集履歴を管理することができる．\verb|/home/fujiwara-yu/git/linux-stable|で以下のコマンドを実行する．
 \begin{verbatim}
 $ git checkout -b 3.15 v3.15
 \end{verbatim}
-実行後，v3.15というタグが示すコミットからブランチ3.15が作成され，カレントブランチがブランチ3.15に切り替わる．コミットとはある時点における開発の状態を記録したものである．
-タグとはコミットを識別するためにつける印である．
+実行後，v3.15というタグが示すコミットからブランチ3.15が作成され，カレントブランチがブランチ3.15に切り替わる．コミットとは，ある時点における開発の状態を記録したものである．
+タグとは，コミットを識別するためにつける印である．
 
-\section{システムコール実装の手順}\label{sec:procedure}
+\section{システムコール追加の手順}\label{sec:procedure}
 \subsection{ソースコードの編集}
-システムコールを実装するために，以下の手順でソースコードの編集を行う．
-本手順書では，既存のファイルを編集する際，追加した行の行頭に$+$を付け，削除した行の行頭には$-$を付けて表す．
+システムコールを追加するために，以下の手順でソースコードの編集を行う．
+本手順書では，既存のファイルを編集する際，追加した行の先頭に$+$を付け，削除した行の行頭には$-$を付けて表す．
 \begin{enumerate}
 
-\item システムコール本体の実装
+\item システムコール本体の追加
 
-\verb|/home/fujiwara-yu/git/linux-stable/kernel| 以下にシステムコールのソースファイル\verb|mysyscall.c|を作成する．以下に実装するシステムコールの概要を示す．
+\verb|/home/fujiwara-yu/git/linux-stable/kernel| 以下にシステムコールのソースファイル\verb|mysyscall.c|を作成する．以下に追加するシステムコールの概要を示す．
 \begin{description}
 \item[【形式】]\verb|asmlinkage void sys_mysyscall(char *str)|
 
-\item[【引数】]任意の文字列
+\item[【引数】]char *str : 任意の文字列
 
 \item [【戻り値】]無し
 
@@ -154,8 +154,8 @@ $ git checkout -b 3.15 v3.15
 \end{verbatim}
 \item システムコール番号の定義
 
-\verb|/home/fujiwara-yu/git/linux-stable/arch/x86/syscalls/syscall_64.tbl| を以下のように編集し，作成したシステムコールに対応した番号を定義する．
-システムコール番号は，システムコールとそれぞれ対応しており，この番号を引数することでシステムコールを呼び出すことができる．
+\verb|/home/fujiwara-yu/git/linux-stable/arch/x86/syscalls/syscall_64.tbl| を以下のように編集し，作成したシステムコールのシステムコール番号を定義する．
+システムコール番号は，システムコールとそれぞれ対応しており，この番号を\verb|syscall| 命令の引数にすることでシステムコールを呼び出すことができる．
 また，システムコール番号は重複して定義することはできない．
 \begin{verbatim}
   324 315    common  sched_getattr       sys_sched_getattr
@@ -197,7 +197,7 @@ $ make defconfig
 
 \item カーネルのコンパイル
 
-\verb|Linux|をコンパイルする．以下のコマンドを実行する．
+以下のコマンドを実行し，カーネルをコンパイルする．
 \begin{verbatim}
 $ make bzImage -j8
 \end{verbatim}
@@ -206,6 +206,7 @@ $ make bzImage -j8
 カーネルシンボルとは，カーネルのプログラムが格納されたメモリアドレスと対応付けられた文字列のことである．
 
 \item カーネルのインストール
+
 コンパイルしたカーネルをインストールする．以下のコマンドを実行する．
 \begin{verbatim}
 $ sudo cp /home/fujiwara-yu/git/linux-stable/arch/x86/boot/bzImage \
@@ -213,11 +214,12 @@ $ sudo cp /home/fujiwara-yu/git/linux-stable/arch/x86/boot/bzImage \
 $ sudo cp /home/fujiwara-yu/git/linux-stable/System.map \
           /boot/System.map-3.15.0-linux
 \end{verbatim}
-実行後，\verb|bzImage|と\verb|System.map|が\verb|/boot|以下にそれぞれ\verb|vmlinuz-3.15.0-linux|と\verb|System.map-3.15.0-linux|にコピーされる．
+実行後，\verb|bzImage|と\verb|System.map|が\verb|/boot|以下にそれぞれ\verb|vmlinuz-3.15.0-linux|と\verb|System.map-3.15.0-linux|という名前でコピーされる．
 
 \item カーネルモジュールのコンパイル
+
 以下のコマンドを実行し，カーネルモジュールをコンパイルする．
-カーネルモジュールとはカーネルの機能を拡張するためのバイナリファイルである．以下のコマンドを実行する．
+カーネルモジュールとは，カーネルの機能を拡張するためのバイナリファイルである．
 \begin{verbatim}
 $ make modules
 \end{verbatim}
@@ -232,7 +234,7 @@ $ sudo make modules_install
 \begin{verbatim}
 DEPMOD 3.15.0
 \end{verbatim}
-これは，カーネルモジュールをインストールしたディレクトリ名である．このディレクトリ名は次の手順で指定するため，控えておく．
+これは，カーネルモジュールをインストールしたディレクトリ名である．このディレクトリ名は手順(6)で指定するため，控えておく．
 
 \item 初期RAMディスクの作成
 
@@ -240,12 +242,15 @@ DEPMOD 3.15.0
 \begin{verbatim}
 $ sudo update-initramfs -c -k 3.15.0
 \end{verbatim}
-コマンドの引数として手順(5)で控えたディレクトリ名を与える．実行後，\verb|/boot|以下に初期RAMディスク\verb|initrd.image-3.15.0|が作成される．作成された初期RAMディスクの最後の3.15.0は与えた引数によって名前が決まる．
+コマンドの引数として手順(5)で控えたディレクトリ名を与える．実行後，\verb|/boot|以下に初期RAMディスク\verb|initrd.image-3.15.0|が作成される．
 
 \item ブートローダの設定
 
-システムコールを実装したカーネルをブートローダから起動可能にするため，ブートローダを設定する．\verb|/boot/grub/grub.cfg|が設定ファイルである．本環境では設定ファイルを直接編集しない．
-使用されているブートローダは\verb|GRUB2|である．そのため，\verb|/etc/grub.d| 以下にエントリ追加用のスクリプトを作成し，そのスクリプトを実行することでエントリを追加する．ブートローダを設定する手順を以下に示す．
+システムコールを追加したカーネルをブートローダから起動可能にするため，ブートローダを設定する．\verb|/boot/grub/grub.cfg|が設定ファイルである．
+カーネルのエントリを追加するにはこのファイルを編集する必要がある．
+本環境で使用されているブートローダは\verb|GRUB2|である．
+\verb|GRUB2| でカーネルのエントリを追加する際，設定ファイルを直接編集しない． \verb|/etc/grub.d| 以下にエントリ追加用のスクリプトを作成し，そのスクリプトを実行することでエントリを追加する．ブートローダを設定する手順を以下に示す．
+
 
 \begin{enumerate}
 \item エントリ追加用のスクリプトの作成
@@ -308,17 +313,17 @@ $ sudo chmod +x 11_linux-3.15.0
 \begin{verbatim}
 $sudo update-grub
 \end{verbatim}
-実行後，\verb|/boot/grub/grub.cfg| にシステムコールを実装したカーネルのエントリが追加される．
+実行後，\verb|/boot/grub/grub.cfg| にシステムコールを追加したカーネルのエントリが追加される．
 
 \end{enumerate}
 
 \item 再起動
 
-以下のコマンドを実行し，計算機を再起動させる．
+以下のコマンドを実行し，計算機を再起動する．
 \begin{verbatim}
 $ sudo reboot
 \end{verbatim}
-再起動後，GRUB2のカーネル選択画面にエントリが追加されている．手順(7)のスクリプトの例を用いた場合には，\verb|My custom Linux| を選択し，起動する．
+再起動後，GRUB2のカーネル選択画面にエントリが追加されている．手順(7)のスクリプトの例を用いた場合には，\verb|My custom Linux| という名前のエントリが追加される．これを選択し，起動する．
 
 
 \end{enumerate}
@@ -328,7 +333,7 @@ $ sudo reboot
 
 \section{テスト}\label{sec:test}
 
-カーネルのメッセージバッファに任意の文字列を出力するシステムコールが実装できているかテストする．このため，テストを行うプログラム \verb|test.c| を \verb|/home/fujiwara-yu/git/linux-stable/| 以下に作成する．
+カーネルのメッセージバッファに任意の文字列を出力するシステムコールが追加できているかテストする．このため，テストを行うプログラム \verb|test.c| を作成する．
 
 以下に\verb|test.c| を記述する．
 \begin{verbatim}
@@ -338,21 +343,22 @@ $ sudo reboot
  4
  5 int main(){
  6      char str[] = "Hello World";
- 7      suscall(SYS_MYSYSCALL, str);
+ 7      syscall(SYS_MYSYSCALL, str);
  8      return 0;
  9 }
 \end{verbatim}
-このプログラムをコンパイルし実行する．実行後，以下のコマンドを実行することでカーネルのメッセージバッファを確認し，文字列が出力されているかを示す．
+このプログラムをコンパイルし実行する．カーネルのメッセージバッファに\verb|Hello World| が表示されれば，システムコールが追加できている．
+以下のコマンドカーネルのメッセージバッファを確認する．
 \begin{verbatim}
 $ dmesg
 \end{verbatim}
-以下のメッセージが表示されればシステムコールが正しく実装されている．
+以下のメッセージが表示されればシステムコールが正しく追加されている．
 \begin{verbatim}
 [ 3883.771978] Hello World
 \end{verbatim}
 
 \section{おわりに}\label{sec:conclusion}
-本手順書では，カーネルのメッセージバッファに任意の文字列を出力するシステムコールを例にシステムコールの実装手順を示した．また，実装の確認手順を示した．
+本手順書では，カーネルのメッセージバッファに任意の文字列を出力するシステムコールを例にシステムコールの追加手順を示した．また，追加できたか知るための確認手順を示した．
 
 
 \end{document}
