@@ -5,6 +5,7 @@ require 'SlackBot'
 
 class MySlackBot < SlackBot
   # cool code goes here
+  
 end
 
 slackbot = MySlackBot.new
