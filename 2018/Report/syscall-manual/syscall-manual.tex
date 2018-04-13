@@ -32,14 +32,14 @@
 \end{center}
 
 \begin{flushright}
-  2018/4/12\\
+  2018/4/13 \\
  藤原 裕貴
 \end{flushright}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 概要
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{はじめに}\label{sec:introduction}
-本手順書では，カーネルのメッセージバッファに任意の文字列を出力するシステムコールの追加手順を説明する．本手順書は，コンソールの基本的な操作を習得している者を読者として想定している．システムコールを追加するためのカーネルの取得から説明を行う．
+本手順書では，システムコール追加の手順を説明する．例として，カーネルのメッセージバッファに任意の文字列を出力するシステムコールを追加する．本手順書は，コンソールの基本的な操作を習得している者を読者として想定している．システムコールを追加するためのカーネルの取得から説明を行う．
 以下に，本手順書の章立てを示す．
 
 \begin{description}
@@ -81,12 +81,12 @@
 $ su
 # visudo
 \end{verbatim}
-エディタが起動し，\verb|"root ALL=(ALL) ALL"|の直後に\verb|"fujiwara-yu ALL=(ALL) ALL"| を追加する．
+エディタが起動する．その後，\verb|"root ALL=(ALL) ALL"|の次の行に\verb|"fujiwara-yu ALL=(ALL) ALL"| を追加する．
 なお，\verb|fujiwara-yu|はユーザ名であり，自身のユーザ名に変更して使用する．
 
 \subsection{パッケージのインストール}
 本手順において必要となるパッケージのインストール方法を示す．
-\verb|git| はパッケージ名である．以下のコマンドを実行することで，パッケージのインストールが行える．
+以下は\verb|git|を例とした場合である．コマンドを実行することで，パッケージのインストールが行える．
 \begin{verbatim}
 $ sudo apt-get install git
 \end{verbatim}
@@ -112,10 +112,10 @@ $ cd git
 $ git clone \
   git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
 \end{verbatim}
-まず，\verb|mkdir|コマンドにより\verb|/home/fujiwara-yu|以下にディレクトリが作成される．その後\verb|cd|コマンドにより，\verb|git|ディレクトリに移動する．そのディレクトリで，\verb|git clone|コマンドでリポジトリの複製を行うことで\verb|/home/fujiwara-yu/git|以下に\verb|linux-stable|ディレクトリが作成される．\verb|linux-stable|以下に\verb|Linux|のソースコードが格納されている．
+まず，\verb|mkdir|コマンドにより\verb|/home/fujiwara-yu|以下に\verb|git|ディレクトリが作成される．次に，\verb|cd|コマンドにより，\verb|git|ディレクトリに移動する．そして，そのディレクトリで，\verb|git clone|コマンドを実行し，リポジトリの複製を行う．すると，\verb|/home/fujiwara-yu/git|以下に\verb|linux-stable|ディレクトリが作成される．\verb|linux-stable|以下に\verb|Linux|のソースコードが格納されている．
 
 \subsection{ブランチの切り替え}
-\verb|Linux|のソースコードのバージョンを切り替えるため，ブランチの作成と切り替えを行う．ブランチとは，ソースコードの編集履歴を管理するための分岐である．ブランチごとに別の編集履歴を管理することができる．\verb|/home/fujiwara-yu/git/linux-stable|で以下のコマンドを実行する．
+\verb|Linux|のソースコードのバージョンを切り替えるため，ブランチの作成と切り替えを行う．ブランチとは，ソースコードの編集履歴を管理するための分岐である．ブランチを切り替えることで，ブランチごとに異なる編集履歴を管理できる．\verb|/home/fujiwara-yu/git/linux-stable|で以下のコマンドを実行する．
 \begin{verbatim}
 $ git checkout -b 3.15 v3.15
 \end{verbatim}
@@ -155,8 +155,8 @@ $ git checkout -b 3.15 v3.15
 \item システムコール番号の定義
 
 \verb|/home/fujiwara-yu/git/linux-stable/arch/x86/syscalls/syscall_64.tbl| を以下のように編集し，作成したシステムコールのシステムコール番号を定義する．
-システムコール番号は，システムコールとそれぞれ対応しており，この番号を\verb|syscall| 命令の引数にすることでシステムコールを呼び出すことができる．
-また，システムコール番号は重複して定義することはできない．
+システムコール番号は，システムコールとそれぞれ対応しており，この番号を\verb|syscall| 命令の引数にすることでシステムコールを呼び出せる．
+また，システムコール番号は重複して定義できない．
 \begin{verbatim}
   324 315    common  sched_getattr       sys_sched_getattr
   325 316    common  renameat2           sys_renameat2
@@ -164,7 +164,12 @@ $ git checkout -b 3.15 v3.15
 \end{verbatim}
 \item Makefileの編集
 
-\verb|/home/fujiwara-yu/git/linux-stable/kernel/Makefile| を以下のように編集し，システムコール本体のソースファイルである\verb|/home/fujiwara-yu/git/linux-stable/kernel/mysyscall.c| のコンパイルを追加する．
+システムコール本体のソースファイルである\verb|/home/fujiwara-yu/git/linux-stable/kernel|
+
+\verb|/mysyscall.c| のコンパイルを行うために，
+\verb|/home/fujiwara-yu/git/linux-stable/kernel|
+
+\verb|/Makefile| を以下のように編集する．
 \begin{verbatim}
    5 obj-y     = fork.o exec_domain.o panic.o \
    6             cpu.o exit.o itimer.o time.o softirq.o resource.o \
@@ -184,7 +189,7 @@ $ git checkout -b 3.15 v3.15
 \end{enumerate}
 
 \subsection{カーネルの再構築}
-以下の手順でカーネルの再構築を行う．\verb|/home/fujiwara-yu/git/linux-stable|以下でコマンドを実行する．
+カーネルの再構築を行う．\verb|/home/fujiwara-yu/git/linux-stable|で以下の手順に従ってコマンドを実行する．
 
 \begin{enumerate}
 \item .configファイルの作成
@@ -203,7 +208,7 @@ $ make bzImage -j8
 \end{verbatim}
 コマンド実行後，\verb|/home/fujiwara-yu/git/linux-stable/arch/x86/boot|以下に\verb|bzImage|という名前の圧縮カーネルイメージが作成される．カーネルイメージとは実行可能形式のカーネルを含むファイルである．
 同時に\verb|/home/fujiwara-yu/git/linux-stable|以下にすべてのカーネルシンボルのアドレスを記述した\verb|System.map|が作成される．
-カーネルシンボルとは，カーネルのプログラムが格納されたメモリアドレスと対応付けられた文字列のことである．
+カーネルシンボルとは，カーネルのプログラムが格納されたメモリアドレスと対応付けられた文字列である．
 
 \item カーネルのインストール
 
@@ -248,7 +253,7 @@ $ sudo update-initramfs -c -k 3.15.0
 
 システムコールを追加したカーネルをブートローダから起動可能にするため，ブートローダを設定する．\verb|/boot/grub/grub.cfg|が設定ファイルである．
 カーネルのエントリを追加するにはこのファイルを編集する必要がある．
-本環境で使用されているブートローダは\verb|GRUB2|である．
+なお，本環境で使用されているブートローダは\verb|GRUB2|である．
 \verb|GRUB2| でカーネルのエントリを追加する際，設定ファイルを直接編集しない． \verb|/etc/grub.d| 以下にエントリ追加用のスクリプトを作成し，そのスクリプトを実行することでエントリを追加する．ブートローダを設定する手順を以下に示す．
 
 
@@ -292,7 +297,7 @@ $ sudo update-initramfs -c -k 3.15.0
 
 \verb|<| ルートファイルシステム \verb|>| : \verb|/root| を割り当てたパーティション
 
-\verb|<| その他のブートオプション \verb|>| : quiet はカーネルの起動時に出力するメッセージを省略する
+\verb|<| その他のブートオプション \verb|>| : quiet はカーネルの起動時に出力するメッセージを省略可能
 
 \item initrd \verb|<| 初期RAM ディスク名 \verb|>|
 
@@ -348,7 +353,7 @@ $ sudo reboot
  9 }
 \end{verbatim}
 このプログラムをコンパイルし実行する．カーネルのメッセージバッファに\verb|Hello World| が表示されれば，システムコールが追加できている．
-以下のコマンドカーネルのメッセージバッファを確認する．
+以下のコマンドで，カーネルのメッセージバッファを確認する．
 \begin{verbatim}
 $ dmesg
 \end{verbatim}
@@ -356,6 +361,7 @@ $ dmesg
 \begin{verbatim}
 [ 3883.771978] Hello World
 \end{verbatim}
+なお，左の数字は計算機の起動からの経過時間である．そのため，テストをする上では無視しても良い．
 
 \section{おわりに}\label{sec:conclusion}
 本手順書では，カーネルのメッセージバッファに任意の文字列を出力するシステムコールを例にシステムコールの追加手順を示した．また，追加できたか知るための確認手順を示した．
