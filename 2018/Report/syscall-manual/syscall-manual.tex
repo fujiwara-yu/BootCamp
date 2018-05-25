@@ -34,7 +34,7 @@
 \end{center}
 
 \begin{flushright}
-  2018/4/13 \\
+  2018/4/19 \\
  藤原 裕貴
 \end{flushright}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -108,7 +108,7 @@ gitは第\ref{sec:kernel}章のLinuxカーネルの取得で用い，gcc，bc，
 \section{Linux カーネルの取得}\label{sec:kernel}
 \subsection{Linux のソースコードの取得}
 LinuxのソースコードはGitで管理されている．Gitとは，オープンソースのバージョン管理システムである．下記のGitリポジトリをクローンし，Linuxのソースコードを取得する．リポジトリとは，ファイルやディレクトリを保存する場所のことである．
-クローンとは既存のGitリポジトリのコピーを取得することである．
+クローンとは既存のGitリポジトリを複製することである．
 
 \begin{verbatim}
 git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
@@ -166,7 +166,7 @@ $ git checkout -b 3.15 v3.15
 
 \verb|/home/fujiwara-yu/git/linux-stable/arch/x86/syscalls/syscall_64.tbl| を以下のように編集し，作成したシステムコールのシステムコール番号を定義する．
 システムコール番号は，システムコールとそれぞれ対応しており，この番号をsyscall 命令の引数にすることでシステムコールを呼び出せる．
-また，システムコール番号は重複して定義できない．
+そのため，システムコール番号は重複して定義できない．
 \begin{spacing}{0.7}
 \begin{verbatim}
   324 315    common  sched_getattr       sys_sched_getattr
@@ -252,7 +252,7 @@ $ sudo make modules_install
 \begin{verbatim}
 DEPMOD 3.15.0
 \end{verbatim}
-これは，カーネルモジュールをインストールしたディレクトリ名である．このディレクトリ名は手順(6)で指定するため，控えておく．
+上記のDEPMOD以下の3.15.0は，カーネルモジュールをインストールしたディレクトリ名である．このディレクトリ名は手順(6)で指定するため，控えておく．
 
 \item 初期RAMディスクの作成
 
@@ -382,7 +382,7 @@ $ dmesg
 なお，左の数字は計算機の起動からの経過時間である．そのため，テストをする上では無視しても良い．
 
 \section{おわりに}\label{sec:conclusion}
-本手順書では，カーネルのメッセージバッファに任意の文字列を出力するシステムコールを例にシステムコールの追加手順を示した．また，追加できたか否か知るための確認手順を示した．
+本手順書では，カーネルのメッセージバッファに任意の文字列を出力するシステムコールを例にシステムコールの追加手順を示した．また，追加できたか否か確認するための手順を示した．
 
 \section{付録}\label{sec:code}
 付録にカーネルのメッセージバッファに任意の文字列を出力するシステムコールのソースコード例を添付する．
