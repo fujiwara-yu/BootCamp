@@ -1,0 +1,98 @@
+\documentclass[12pt]{jsarticle}
+\usepackage[dvipdfmx]{graphicx}
+\textheight = 25truecm
+\textwidth = 18truecm
+\topmargin = -1.5truecm
+\oddsidemargin = -1truecm
+\evensidemargin = -1truecm
+\marginparwidth = -1truecm
+
+\def\theenumii{\Alph{enumii}}
+\def\theenumiii{\alph{enumiii}}
+\def\labelenumi{(\theenumi)}
+\def\labelenumiii{(\theenumiii)}
+\def\theenumiv{\roman{enumiv}}
+\def\labelenumiv{(\theenumiv)}
+\usepackage{comment}
+\usepackage{url}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% sty/ にある研究室独自のスタイルファイル
+\usepackage{jtygm}  % フォントに関する余計な警告を消す
+\usepackage{nutils} % insertfigure, figref, tabref マクロ
+
+\def\figdir{./figs} % 図のディレクトリ
+\def\figext{pdf}    % 図のファイルの拡張子
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 表題
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{center}
+{\LARGE SlackBot プログラム作成の報告書}
+\end{center}
+
+\begin{flushright}
+  2018/4/25\\
+  藤原 裕貴
+\end{flushright}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 概要
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{概要}
+\label{sec:introduction}
+本資料は2018年度B4新人研修課題の報告書である．新人研修課題として SlackBot プログラムを作成した．
+Slack\cite{Slack}とは Web 上で利用できるチームコミュニケーションツールである．SlackBot とはある契機により自動でSlackに発言するプログラムのことである．
+本資料では，課題内容，理解できなかった部分，作成できなかった機能，および自主的に作成した機能について述べる．
+
+
+\section{課題内容}
+課題として， SlackBot プログラムを Ruby で作成する．具体的には以下の2つを行う．
+
+\begin{enumerate}
+\item 任意の文字列を発言するプログラムの作成
+
+Slack でユーザが``「(任意の文字列)」と言って"を含む発言をした場合に SlackBot が``(任意の文字列)"を発言するプログラムを作成する．
+
+\item SlackBot プログラムへの機能追加
+
+Slack 以外の Web サービスの API や Webhook を利用した機能を追加する．たとえば，ユーザの発言を契機に SlackBot が雨の情報を発言する機能である．
+\end{enumerate}
+
+本課題で使用する Ruby のバージョンは2.5.1である．
+
+\section{理解できなかった部分}
+理解できなかった部分を以下に示す．
+\begin{enumerate}
+\item \verb|initialize| メソッドに記述されている以下のコードの動作
+  \begin{verbatim}
+@incoming_webhook = ENV['INCOMING_WEBHOOK_URL'] || config["incoming_webhook_url"]
+  \end{verbatim}
+    このコードは，演算子\verb+||+で Heroku の環境変数と\verb|settings.yml|に記述された URL の論理和の計算をしている．
+    これが必要な理由と動作が理解できなかった．
+
+\end{enumerate}
+
+\section{作成できなかった機能}
+作成できなかった機能を以下に示す．
+\begin{enumerate}
+\item 指定した Outgoing WebHooks 以外からの POST を拒否する機能
+\item 指定された地点間の経路を示した画像を表示する機能
+\end{enumerate}
+
+\section{自主的に作成した機能}
+移動手段，出発地点，および到着地点から以下の情報を SlackBot が発言する機能を作成した．
+\begin{enumerate}
+\item 出発地点から到着地点までの距離
+\item 出発地点から到着地点までの移動にかかる時間
+\item 出発地点から到着地点までの経路の詳細を示した Google Map へのリンク
+\end{enumerate}
+
+
+\bibliographystyle{ipsjunsrt}
+\bibliography{mybibdata}
+
+
+
+
+\end{document}

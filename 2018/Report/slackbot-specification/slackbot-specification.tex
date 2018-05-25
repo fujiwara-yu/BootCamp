@@ -1,0 +1,269 @@
+\documentclass[12pt]{jsarticle}
+\usepackage[dvipdfmx]{graphicx}
+\textheight = 25truecm
+\textwidth = 18truecm
+\topmargin = -1.5truecm
+\oddsidemargin = -1truecm
+\evensidemargin = -1truecm
+\marginparwidth = -1truecm
+
+\def\theenumii{\Alph{enumii}}
+\def\theenumiii{\alph{enumiii}}
+\def\labelenumi{(\theenumi)}
+\def\labelenumiii{(\theenumiii)}
+\def\theenumiv{\roman{enumiv}}
+\def\labelenumiv{(\theenumiv)}
+\usepackage{comment}
+\usepackage{url}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% sty/ にある研究室独自のスタイルファイル
+\usepackage{jtygm}  % フォントに関する余計な警告を消す
+\usepackage{nutils} % insertfigure, figref, tabref マクロ
+
+\def\figdir{./figs} % 図のディレクトリ
+\def\figext{pdf}    % 図のファイルの拡張子
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 表題
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{center}
+{\LARGE SlackBotプログラムの仕様書}
+\end{center}
+
+\begin{flushright}
+  2018/4/25\\
+  藤原 裕貴
+\end{flushright}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 概要
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{概要}
+\label{sec:introduction}
+本資料は，2018年度B4新人研修課題にて作成した SlackBot プログラムの仕様についてまとめたものである．
+本プログラムで使用するSlack\cite{Slack}とは Web 上で利用できるチームコミュニケーションツールである．SlackBot とはある契機により自動でSlackに発言するプログラムのことである．
+本プログラムは，以下の2つの機能を持つ．
+\begin{enumerate}
+\item 指定された文字列を発言
+\item 指定された移動手段と2つの地点から2つの地点間の距離，移動にかかる時間，および経路を発言
+\end{enumerate}
+なお，本資料においての発言とはSlackの特定のチャンネル上で発言することを指す．また，本資料においての発言内容は``"で囲って表す．
+
+\section{対象とする利用者}\label{sec:user}
+本プログラムは，以下の2つのアカウントを所有する利用者を対象としている．
+\begin{enumerate}
+\item Slack アカウント
+\item Google アカウント
+
+\end{enumerate}
+
+Google アカウントは本プログラムで使用する Google Maps API のキーを取得するのに必要である．
+
+
+\section{機能}\label{function}
+本プログラムはSlackでの``@FBot"から始まるユーザの発言を受信し，これに対して SlackBot が発言する． SlackBot から発言される内容は``@FBot"に続く文字列により決定される．以下に本プログラムが持つ2つの機能について述べる．
+\begin{description}
+\item [(機能1)] 指定された文字列を発言
+
+　この機能はユーザの``@FBot 「(任意の文字列)」と言って"という発言に対して，「」内の文字列をユーザに発言する．たとえば，``@FBot 「こんにちは」と言って"という発言に対して SlackBot は``こんにちは"と発言する．
+「」が重複する際，SlackBot は「」内が最も長くなるように発言する．
+たとえば，``@FBot 「「こんにちは」と言って」と言って"という発言に対して SlackBot は``「こんにちは」と言って"と発言する．
+
+\item [(機能2)] 指定された移動手段と2つの地点から2つの地点間の距離，移動にかかる時間，および経路を発言
+
+　この機能はユーザの``@FBot (移動手段)での(出発地点)から(到着地点)までの道"という発言に対して，SlackBot は以下の情報を発言する．
+
+\begin{enumerate}
+\item 出発地点から到着地点までの距離
+\item 出発地点から到着地点までの移動にかかる時間
+\item 出発地点から到着地点までの経路を示した Google Map へのリンク
+\end{enumerate}
+
+　なお，移動手段は徒歩，自動車，および電車から指定する．出発地点と到着地点は，場所の名称か住所で指定する．
+たとえば，ユーザの``@FBot 徒歩での岡山大学から岡山駅までの道"という発言に対して，SlackBot は，以下のように情報を発言する．
+    \begin{verbatim}
+距離は2.9 km
+かかる時間は37分
+詳しい道はこちら
+    \end{verbatim}
+　SlackBot が発言した``こちら"をクリックすることで詳しい経路を示した Google Map を見ることができる．
+
+　これらの情報は，住所を緯度と経度に変換する Google Maps Geocoding API\cite{GoogleMapsGeocoding}と移動手段，緯度，および経度から経路を作成する Google Maps Directions API\cite{GoogleMapsDirections} を使用して取得している．
+この2つの API は Google Maps API キーにより使用できる．
+\end{description}
+
+上記の(機能1)と(機能2)のどちらにもあてはまるユーザの発言を受信したときは，(機能1)が優先される．
+
+上記の(機能1)と(機能2)のどちらにもあてはまらないユーザの発言を受信したときは，SlackBot は以下を発言する．
+\begin{verbatim}
+「〇〇」と言って or (移動手段)での(出発地点)から(到着地点)までの道
+\end{verbatim}
+\section{動作環境}
+本プログラムの動作環境を表\ref{tab:env}に示す．
+なお，表\ref{tab:env}での動作環境では動作を確認済みである．
+\begin{table}[tb]
+  \begin{center}
+    \caption{動作環境}\label{tab:env}
+    \begin{tabular}{l|l}
+      \hline\hline
+      \multicolumn{1}{l|}{項目} & \multicolumn{1}{l}{内容} \\
+      \hline
+      OS       & Linux Debian GNU/Linux 8 \\
+      CPU      & Intel(R) Core(TM) i5-4590 CPU (3.30GHz) \\
+      メモリ   & 1.0GB \\
+      Ruby     & ruby 2.5.1 \\
+      Ruby Gem & bundler 1.16.1\\
+               & mustermann 1.0.2 \\
+               & rack 2.0.4 \\
+               & rack-protection 2.0.1 \\
+               & tilt 2.0.8 \\
+               & sinatra 2.0.1 \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+\section{環境構築}
+\subsection{概要}
+本プログラムの動作のために必要な環境構築の項目を以下に示す．
+\begin{enumerate}
+\item Slack の Incoming WebHooks の設定
+\item Slack の Outgoing WebHooks の設定
+\item Heroku の設定
+\item Google Maps API の API キー取得
+\end{enumerate}
+
+次節で各項目の手順を述べる．
+\subsection{具体的な手順}
+\subsubsection{Slack の Incoming WebHooks の設定}
+Slack が提供する Incoming WebHooks の設定を行う．Incoming WebHooks とは，指定したチャンネルの URL に発言を POST する機能である．
+以下に設定手順を示す．
+
+\begin{enumerate}
+  \item 以下の URL にアクセスする．
+
+    \verb|https://<team_name>.slack.com/apps/manage/custom-integrations|
+
+    ただし，\verb|<team_name>|はSlackで所属するチーム名に置き換える．
+　　
+  \item 「Incoming WebHooks」をクリックする． 
+  \item 「Add Configuration」をクリックする．
+  \item 発言先のチャンネルを選択する．
+  \item 「Add Incoming WebHooks integration」をクリックすることで WebHook URL を取得する．
+\end{enumerate}
+
+\subsubsection{Slack の Outgoing WebHooks の設定}
+Slack が提供する Outgoing WebHooks の設定を行う．Outgoing WebHooks とは，指定したチャンネルでの発言に指定した文字列が含まれているとき，指定した URL にその情報を POST する機能である．
+以下に設定手順を示す．
+
+\begin{enumerate}
+  \item 以下の URL にアクセスする．
+
+    \verb|https://<team_name>.slack.com/apps/manage/custom-integrations|
+
+    ただし，\verb|<team_name>|はSlackで所属するチーム名に置き換える．
+    
+　\item 「Outgoing WebHooks」をクリックする．
+  \item 「Add Outgoing WebHooks integration」をクリックする．
+  \item Outgoing WebHooks の各項目を設定する．設定する項目は表\ref{tab:config}に示す．
+
+なお，表\ref{tab:config}のURL(s)には\verb|https://<my_app_name>.herokuapp.com/slack|を設定する．
+ただし，\verb|<my_app_name>|は5.2.3項(5)にて指定するアプリケーション名である．
+ 
+\begin{table}[tb]
+  \begin{center}
+    \caption{Outgoing WebHooks の設定項目}\label{tab:config}
+    \begin{tabular}{l|l}
+      \hline\hline
+      \multicolumn{1}{l|}{項目} & \multicolumn{1}{l}{内容} \\
+      \hline
+      Channel         & 発言を取得したいチャンネルを設定 \\
+      Trigger Word(s) & Outgoing WebHooks が動作する契機となる単語を設定 \\
+      URL(s)          & Outgoing WebHooks が動作した際にPOSTを行うURL \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+\end{enumerate}
+
+\subsubsection{Herokuの設定}
+Heroku とは，PaaS(Platform as a Service) と呼ばれるサービスであり，Web アプリケーションを実行するためのプラットフォームである．
+以下に設定手順を示す．
+
+\begin{enumerate}
+  \item 以下の URL より Heroku にアクセスし，「Sing up」から新しいアカウントを登録する．
+
+    \verb|https://www.heroku.com/|
+    
+  \item 登録したアカウントでログインし，「Getting Started with Heroku」の使用する言語として「Ruby」を選択する．
+
+  \item 「I'm ready to start」をクリックし，「Download Heroku CLI for...」からCLIをダウンロードする．
+
+  \item ターミナルで以下のコマンドを実行し Heroku にログインする．
+
+    \verb|$ heroku login|
+
+  \item 以下のコマンドを実行し Heroku 上にアプリケーションを生成する．
+
+    \verb|$ heroku create <my_app_name>|
+
+    ここで，\verb|<my_app_name>|は作成するアプリケーション名である．アプリケーション名はアルファベット小文字，数字，およびハイフンのみ使用できる．
+
+  \item 以下のコマンドを実行し，Heroku の環境変数に WebHook URL を設定する．
+
+    \verb|$ heroku config:set INCOMING_WEBHOOK_URL="<webhook_url>"|
+
+ただし，\verb|<webhook_url>|は5.2.1項(5)で取得した WebHook URL に置き換える．
+
+\end{enumerate}
+
+\subsubsection{Google Maps API の API キー取得}
+
+\begin{enumerate}
+  \item 以下の URL にアクセスし，「キーの取得」をクリックする．
+ 
+    \verb|https://developers.google.com/maps/web/|
+
+  \item 「Select or create project」をクリックする．
+  \item 「Create a new project」をクリックし，プロジェクト名を付ける．
+  \item 「NEXT」をクリックすると，Google Maps API キーが作成される．
+
+\end{enumerate}
+
+  作成されたキーを用いることで，Google Maps Geocoding API と Google Maps Directions API が使用できる．
+ 
+\section{使用方法}
+本プログラムの使用方法について述べる．本プログラムは Heroku にデプロイすることにより実行できる．デプロイには，以下のコマンドを実行する．
+
+\verb|$ git push heroku master|
+
+\section{エラー処理と保証しない動作}
+\subsection{エラー処理}
+本プログラムで行ったエラー処理を以下に示す．
+
+\begin{enumerate}
+  \item (機能2)について，交通手段に徒歩，自動車，および電車以外を指定した場合，以下のように発言する．
+    \begin{verbatim}
+交通手段は徒歩か自動車か電車を選んでください
+    \end{verbatim}
+  \item (機能2)について，Google Maps Geocoding API で指定した地点が発見されず，緯度と経度に変換できなかった場合とGoogle Maps Directions API で経路を発見できなかった場合，以下のように発言する．
+
+    \begin{verbatim}
+測定できませんでした
+    \end{verbatim}
+\end{enumerate}
+
+\subsection{保証しない動作}
+本プログラムの保証しない動作を以下に示す．
+
+\begin{enumerate}
+  \item Slack の Outgoing WebHooks 以外からの POST リクエストをブロックする動作．
+  \item (機能2)において，指定する地点の名前が正しくない場合の動作．
+\end{enumerate}
+
+
+\bibliographystyle{ipsjunsrt}
+\bibliography{mybibdata}
+\end{document}
